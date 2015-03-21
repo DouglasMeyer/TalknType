@@ -15,7 +15,8 @@ var C = {
   port: 4000,
   lrPort: 35733,
   paths: {
-    scripts: 'src/**/*.js',
+    scripts: [ 'src/**/*.js',
+               'bower_components/angular-contenteditable/angular-contenteditable.js' ],
     styles:  'src/**/*.less',
     markup:   'src/**/*.html'
   }

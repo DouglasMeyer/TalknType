@@ -41,8 +41,16 @@ body {
 [flex="vertical"] { flex-direction: column; }
 [flex-grow="1"] { flex-grow: 1; }
 
-textarea {
-  font-size: inherit;
-  font-family: inherit;
-  background-color: transparent;
+select {
+  margin-bottom: 1rem;
+}
+
+.words {
+  position: relative;
+
+  > * {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+  }
 }
