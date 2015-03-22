@@ -1,3 +1,4 @@
+// vim: ft=sass
 // Resets
 * {
   margin: 0;
@@ -40,6 +41,20 @@ body {
 [flex] { display: flex; }
 [flex="vertical"] { flex-direction: column; }
 [flex-grow="1"] { flex-grow: 1; }
+
+[margin~="b1"] { margin-bottom: 1rem; }
+[margin~="r1"] { margin-right: 1rem; }
+
+button {
+  font-size: inherit;
+  background-color: inherit;
+  border: 2px solid black;
+
+  &[disabled] {
+    opacity: 0.2;
+    color: initial;
+  }
+}
 
 select {
   margin-bottom: 1rem;

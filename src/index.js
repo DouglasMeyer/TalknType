@@ -1,56 +1,81 @@
 angular.module('Draw', ['contenteditable'])
-.controller('WordsCtrl', function($scope, $timeout, $sce){
-  $scope.words = "What does C.A.L.V.I.N. spell?";
+.factory('speech', function($rootScope, $window, $q){
+  var speech = {
+    voices: [],
+    voice: null,
+    say: function(words){
+      window.speechSynthesis.cancel();
+      var message = new SpeechSynthesisUtterance(words);
+      message.voice = speech.voice;
+      message.rate = 0.5;
 
-  window.speechSynthesis.addEventListener('voiceschanged', function(e){
-    $scope.$apply(function(){
-      $scope.voices = window.speechSynthesis.getVoices();
-      if (!$scope.voice) {
-        $scope.voice = $scope.voices.filter(function(v){ return v.name == 'Fred'; })[0];
-      }
+      var sayDefer = $q.defer();
+      message.addEventListener('boundary', function(e){
+        sayDefer.notify(e.charIndex);
+      });
+      message.addEventListener('end', sayDefer.resolve);
+      message.addEventListener('error', sayDefer.resolve);
+      window.speechSynthesis.speak(message);
+
+      return sayDefer.promise;
+    },
+    stop: function(){
+      $window.speechSynthesis.cancel();
+    }
+  };
+
+  $window.speechSynthesis.addEventListener('voiceschanged', function(e){
+    $rootScope.$apply(function(){
+      voices = $window.speechSynthesis.getVoices();
+      Array.prototype.splice.apply(speech.voices,
+        [0, speech.voices.length].concat(voices));
     });
   });
 
-  function clearMarks(){
-    $scope.$apply(function(){ $scope.marks = ''; });
-  }
+  return speech;
+})
+.controller('WordsCtrl', function($scope, $timeout, $sce, speech){
+  $scope.words = "What does C.A.L.V.I.N. spell?";
 
-  function speak(){
-    if (!$scope.voice) return;
-    window.speechSynthesis.cancel();
+  $scope.voices = speech.voices;
+  unwatchVoices = $scope.$watchCollection('voices', function(voices){
+    speech.voice = voices.filter(function(v){ return v.name == 'Fred'; })[0];
+    if (speech.voice) {
+      unwatchVoices();
+      $scope.talk();
+    }
+  });
+
+  $scope.talk = function(){
+    if (!speech.voice) return;
+    $scope.talking = true;
     var text = String($scope.words).replace(/<[^>]+>/gm, '').replace(/&[^;]+;/gm, '');
-    var message = new SpeechSynthesisUtterance(text);
-    message.voice = $scope.voice;
-    message.rate = 0.5;
-    message.addEventListener('boundary', function(e){
-      $scope.$apply(function(){
-        $scope.marks = $sce.trustAsHtml(text.replace(/[\w\d']+/g, function(word, offset){
-          if (offset === e.charIndex){
-            return "<mark>"+word+"</mark>";
-          } else {
-            return word;
-          }
-        }));
-      });
+    speech.say(text)
+    .finally(function(){
+      $scope.marks = '';
+      $scope.talking = false;
+    }, function(charIndex){
+      $scope.marks = $sce.trustAsHtml(text.replace(/[\w\d']+/g, function(word, offset){
+        if (offset === charIndex){
+          return "<mark>"+word+"</mark>";
+        } else {
+          return word;
+        }
+      }));
     });
-    message.addEventListener('end', clearMarks);
-    message.addEventListener('error', clearMarks);
-    window.speechSynthesis.speak(message);
-  }
+  };
+
+  $scope.stop = speech.stop
 
   var timeout;
   $scope.$watch('words', function(words, oldWords){
-    window.speechSynthesis.cancel();
+    if (words === oldWords) return;
+    speech.stop();
     if (timeout) $timeout.cancel(timeout);
     timeout = $timeout(function(){
       timeout = undefined;
-      speak();
+      $scope.talk();
     }, 1000);
-  });
-
-  $scope.$watch('voice', function(voice, oldVoice){
-    if (!voice || !oldVoice || voice.name === oldVoice.name) return;
-    speak();
   });
 
   var recognition;
@@ -67,7 +92,6 @@ angular.module('Draw', ['contenteditable'])
       }
       recognition.start();
     }
-
   };
 
 })
