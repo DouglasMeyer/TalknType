@@ -42,7 +42,7 @@ angular.module('Draw', ['contenteditable'])
     speech.voice = voices.filter(function(v){ return v.name == 'Fred'; })[0];
     if (speech.voice) {
       unwatchVoices();
-      $scope.talk();
+      debouncedTalk();
     }
   });
 
@@ -64,34 +64,55 @@ angular.module('Draw', ['contenteditable'])
       }));
     });
   };
-
-  $scope.stop = speech.stop
-
-  var timeout;
-  $scope.$watch('words', function(words, oldWords){
-    if (words === oldWords) return;
-    speech.stop();
-    if (timeout) $timeout.cancel(timeout);
-    timeout = $timeout(function(){
-      timeout = undefined;
+  var talkTimeout;
+  function debouncedTalk(){
+    if (talkTimeout) $timeout.cancel(talkTimeout);
+    talkTimeout = $timeout(function(){
+      talkTimeout = undefined;
       $scope.talk();
     }, 1000);
+  }
+
+  $scope.stop = function(){
+    speech.stop();
+    recognition && recognition.stop();
+  };
+
+  $scope.$watch('words', function(words, oldWords){
+    speech.stop();
+    debouncedTalk();
   });
 
   var recognition;
   $scope.listen = function(){
-    if (recognition) {
-      recognition.stop();
-    } else {
-      var recognition = new webkitSpeechRecognition();
-      window.recognition = recognition;
-      recognition.onerror = recognition.onend = recognition.onresult = function(event) {
-        $scope.$apply(function(){
-          $scope.words = event.results[0][0].transcript;
-        });
-      }
-      recognition.start();
-    }
+    $scope.listening = true;
+    recognition = new webkitSpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    var newWords = $scope.words;
+    recognition.onresult = function(event){
+      $scope.$apply(function(){
+        var newText = '';
+        for (var i = event.resultIndex; i < event.results.length; ++i){
+          if (event.results[i].isFinal){
+            newWords += event.results[i][0].transcript;
+          } else {
+            newText += event.results[i][0].transcript;
+          }
+        }
+        $scope.marks = $sce.trustAsHtml(newWords + ' <mark>' + newText + '</mark>');
+      });
+    };
+    recognition.onerror = recognition.onend = function(event){
+      $scope.$apply(function(){
+        recognition = undefined;
+        $scope.listening = false;
+        $scope.words = newWords;
+        $scope.marks = '';
+      });
+    };
+    recognition.start();
   };
 
 })

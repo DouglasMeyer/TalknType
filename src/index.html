@@ -11,9 +11,9 @@
   </head>
   <body ng-app="Draw" ng-controller="WordsCtrl" flex="vertical">
     <div flex margin="b1">
-      <button flex-grow="1" margin="r1" ng-click="talk()" ng-disabled="talking">Talk</button>
-      <button flex-grow="1" margin="r1" ng-click="stop()" ng-disabled="!talking">Stop</button>
-      <button flex-grow="1" margin="r1" ng-click="listen()">Listen</button>
+      <button flex-grow="1" margin="r1" ng-click="talk()" ng-disabled="talking || listening">Talk</button>
+      <button flex-grow="1" margin="r1" ng-click="stop()" ng-disabled="!talking && !listening">Stop</button>
+      <button flex-grow="1" margin="r1" ng-click="listen()" ng-disabled="listening || talking">Listen</button>
     </div>
     <div flex-grow="1" class="words">
       <div ng-bind-html="marks"></div>
