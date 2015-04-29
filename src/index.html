@@ -3,17 +3,47 @@
   <head>
     <title>Talk'n Type</title>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
-    <script src="/angular.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
     <script src="/angular-contenteditable.js"></script>
     <script src="/index.js"></script>
     <link rel="stylesheet" href="/index.css" />
   </head>
   <body ng-app="Draw" ng-controller="WordsCtrl" flex="vertical">
+    <div ng-show="showingUnsupported" full-page>
+      <p>
+        Sorry, your browser does not support <code>speechSynthesis</code>.
+        Please try in Chrome.
+      </p>
+      <p>
+        Made by Calvin and <a href="mailto:Douglas.Meyer@mail.com">Doug</a>.
+        See <a href="https://github.com/DouglasMeyer/TalknType">Github</a> for details.
+      </p>
+    </div>
+    <div ng-show="showingConfig" full-page flex="vertical">
+      <div flex="reverse" margin="b1">
+        <button ng-click="hideConfig()" width="3">?</button>
+      </div>
+      <div flex-grow="1">
+        <div field>
+          <label for="change-voice">Change Voice</label>
+          <select
+            id="change-voice"
+            margin="b1"
+            ng-model="voice"
+            ng-options="voice.name group by voice.lang for voice in voices"
+          ></select>
+        </div>
+        <p>
+          Made by Calvin and <a href="mailto:Douglas.Meyer@mail.com">Doug</a>.
+          See <a href="https://github.com/DouglasMeyer/TalknType">Github</a> for details.
+        </p>
+      </div>
+    </div>
     <div flex margin="b1">
       <button flex-grow="1" margin="r1" ng-click="talk()" ng-disabled="talking || listening">Talk</button>
       <button flex-grow="1" margin="r1" ng-click="stop()" ng-disabled="!talking && !listening">Stop</button>
       <button flex-grow="1" margin="r1" ng-click="listen()" ng-disabled="listening || talking">Listen</button>
+      <button ng-click="showConfig()" width="3">?</button>
     </div>
     <div flex-grow="1" class="words">
       <div ng-bind-html="marks"></div>
