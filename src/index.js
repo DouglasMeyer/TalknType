@@ -39,7 +39,7 @@ angular.module('Draw', ['contenteditable'])
   return speech;
 })
 .controller('WordsCtrl', function($scope, $timeout, $sce, speech){
-  $scope.words = "What does C.A.L.V.I.N. spell?";
+  $scope.words = "4CALVIN 2NORAH 27KATY 31DAD 7MACY 0CAROLINE AUGUST 12 APRIL 5TH 1988. YEAH YEAH YEAHS JUNE 24TH 98, 4TH";
 
   if (!speech.supported){
     $scope.showingUnsupported = true;
