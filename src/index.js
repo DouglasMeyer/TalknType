@@ -39,7 +39,10 @@ angular.module('Draw', ['contenteditable'])
   return speech;
 })
 .controller('WordsCtrl', function($scope, $timeout, $sce, speech){
-  $scope.words = "4CALVIN 2NORAH 27KATY 31DAD 7MACY 0CAROLINE AUGUST 12 APRIL 5TH 1988. YEAH YEAH YEAHS JUNE 24TH 98, 4TH";
+  var wordsRef = new Firebase("https://talk-n-type.firebaseio.com/words");
+  wordsRef.on('value', function(snapshot){
+    $scope.words = snapshot.val();
+  });
 
   if (!speech.supported){
     $scope.showingUnsupported = true;
@@ -96,6 +99,7 @@ angular.module('Draw', ['contenteditable'])
   };
 
   $scope.$watch('words', function(words, oldWords){
+    if (words) wordsRef.set(words);
     speech.stop();
     debouncedTalk();
   });
