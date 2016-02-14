@@ -41,7 +41,11 @@ angular.module('Draw', ['contenteditable'])
 .controller('WordsCtrl', function($scope, $timeout, $sce, speech){
   var wordsRef = new Firebase("https://talk-n-type.firebaseio.com/words");
   wordsRef.on('value', function(snapshot){
-    $scope.words = snapshot.val();
+    if ($scope.words !== snapshot.val()) {
+      $scope.$apply(function(){
+        $scope.words = snapshot.val();
+      });
+    }
   });
 
   if (!speech.supported){
